@@ -2,11 +2,12 @@
 
 {% block content %}
 
-    <center><h1>Build a Blog!</h1></center>
-    {% for task in update_blog %}
-        <h2><a href="/display/{{task.id}}">{{task.title}}</a></h2>
-        <p>{{task.blog_content}}</p>
-        <hr>
+    <center><h1>Blog Users!</h1></center>
+    {% for task in user_name %}
+        <ul>
+            <li><h2><a href="/display/{{task.email}}">{{task.email}}</a></h2></li>
+        
+        </ul>
     {% endfor %}
 
 {% endblock %}

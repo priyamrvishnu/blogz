@@ -6,7 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.config['DEBUG'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://blogz:popcorn4@localhost:8889/blogz'
-app.config ['AQLALCHEMY_ECHO']=True
+app.config ['SQLALCHEMY_ECHO']=True
+#app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 db = SQLAlchemy(app)
 app.secret_key = "#19821604ayirp"
 
@@ -98,7 +99,7 @@ def index(id):
 
 @app.route('/todos', methods=['POST', 'GET'])
 def add_blog():
-    
+    owner = User.query.filter_by(email= session['email']).first()
     if request.method == 'POST':
         task_title= request.form['title']
         task_blog_content= request.form['blog_content']
@@ -108,7 +109,7 @@ def add_blog():
         if task_blog_content=='':
             error="please specify the blog content"
             return redirect ('/todos?blog_content_error=' +error +'&title='+task_title)
-        update_blog =Blog(task_title,task_blog_content)
+        update_blog =Blog(task_title,task_blog_content,owner)
         db.session.add(update_blog)
         db.session.commit()
         return render_template('display.html',title="Add a Blog", update_blog=update_blog)
@@ -121,41 +122,21 @@ def add_blog():
         return render_template ('todos.html', title= "Add a Blog", title_error=title_error, 
         blog_content_error=blog_content_error)
 
-@app.route('/', defaults={'id':0})
-@app.route('/display/<int:id>')
-def index(id):
-    owner = User.query.filter_by(email= session['email']).first()
-    if request.method == 'POST':
-        task_name = request.form['task']
-        new_task=Blog(task_name, owner)
-        db.session.add(new_task)
-        db.session.commit()
-
+@app.route('/', defaults={'id':0,'email':''})
+@app.route('/display/<int:id>',defaults={'email':''})
+@app.route('/display/<email>',defaults={'id':0})
+def index(id, email):
+    user_name=User.query.filter_by().all()
     if id:
-        update_blog=Blog.query.get(id)
-        return render_template('display.html',title="Add a Blog", update_blog=update_blog)
-
-    update_blog = Blog.query.filter_by(owner=owner).all()
-    return render_template('first.html',title="Build a Blog", 
+        update_blog = Blog.query.get(id)
+        return render_template('display.html',title="Details of Blogs", 
          update_blog=update_blog )
-
-
-
-"""@app.route('/', methods=['POST', 'GET'])
-def index():
-
-    owner = User.query.filter_by(email= session['email']).first()
-    if request.method == 'POST':
-        task_name = request.form['task']
-        new_task=Task(task_name, owner)
-        db.session.add(new_task)
-        db.session.commit()
+    if email:
+        user_blog=User.query.filter_by(email=email).first()
+        update_blog=Blog.query.filter_by(owner=user_blog).first()
+        return render_template('singleUser.html',title="Add a Blog", update_blog=update_blog)
     
-    tasks = Task.query.filter_by(completed= False, owner=owner).all()
-    completed_tasks = Task.query.filter_by(completed=True,owner=owner).all()
-    return render_template('todos.html', title="Get It Done!", tasks=tasks, completed_tasks= completed_tasks)"""
-
-
+    return render_template('first.html', title="Blog Users!", user_name=user_name)
 
 if __name__ == '__main__':
     app.run() 
