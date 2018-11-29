@@ -3,7 +3,7 @@
 {% block content %}
 
     <center><h1>Build a Blog!</h1></center>
-    {% for task in update_blog %}
+    {% for task in tasks %}
         
         <h2><a href="/display/{{task.id}}">{{task.title}}</a>
         </h2>

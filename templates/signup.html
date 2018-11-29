@@ -5,23 +5,38 @@
 <form action="/register" method="post">
     <table>
         <tr>
-            <td><label for="email">Email</label></td>
-            <td>
-                <input name="email" type="email" value="{{ email }}">
-            </td>
+            <td><label for="username">Username</label></td>
+            <td>  
+                <input name="username" type="text" value='{{username}}' />
+                <span class="error">{{username_error}}</span>
+            </td>    
         </tr>
+                
         <tr>
             <td><label for="password">Password</label></td>
             <td>
                 <input name="password" type="password">
+                <span class="error">{{passwd_error}}</span>
+            <br><br>
             </td>
         </tr>
+            
         <tr>
             <td><label for="verify">Verify Password</label></td>
             <td>
                 <input name="verify" type="password">
+                <span class="error">{{confi_pass_error}}</span>
             </td>
         </tr>
+        <tr>
+            <td><label for="email">Email</label></td>
+            <td>
+                <input name="email" type="email" value="{{ email }}">
+                <span class="error">{{e_mail_error}}</span>
+                <br><br>
+            </td>
+        </tr>
+
     </table>
     <input type="submit" value="Register">
 </form>
