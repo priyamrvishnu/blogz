@@ -62,86 +62,97 @@ def login():
 
 @app.route('/register', methods=['POST', 'GET'])
 def register():
-    username = request.form['username']
-    passwd = request.form['password']
-    confi_pass = request.form['verify']
-    e_mail = request.form['email']
+    if request.method=='POST':
+        username = request.form['username']
+        passwd = request.form['password']
+        confi_pass = request.form['verify']
+        e_mail = request.form['email']
 
-    username_error = ''
-    passwd_error = ''
-    confi_pass_error=''
-    e_mail_error=''
+        username_error = ''
+        passwd_error = ''
+        confi_pass_error=''
+        e_mail_error=''
 
-    numupper =0
-    numlower =0
-    numdigit=0
-    for c in username:
-        if c.isupper():
-            numupper = numupper + 1
-        if c.islower():
-            numlower = numlower + 1
-        if c.isdigit():
-            numdigit = numdigit + 1
+        numupper =0
+        numlower =0
+        numdigit=0
+        for c in username:
+            if c.isupper():
+                numupper = numupper + 1
+            if c.islower():
+                numlower = numlower + 1
+            if c.isdigit():
+                numdigit = numdigit + 1
 
 
-    if numupper <= 0:
-        username_error=('username must contain at least one uppercase character')
+        if numupper <= 0:
+            username_error=('username must contain at least one uppercase character')
         
        
-    if numlower <= 0:
-        username_error=('username must contain at least one lowercase character')
+        if numlower <= 0:
+            username_error=('username must contain at least one lowercase character')
         
 
-    if len(username)<6:
-        username_error = ('username must be greater than 6 characters')
+        if len(username)<6:
+            username_error = ('username must be greater than 6 characters')
         
           
-    if numdigit <= 0:
-        username_error= ('username must contain at least one number')
+        if numdigit <= 0:
+            username_error= ('username must contain at least one number')
            
 
-    numupper =0
-    numlower =0
-    numdigit=0
-    for c in passwd:
-        if c.isupper():
-           numupper = numupper + 1
-        if c.islower():
-            numlower = numlower + 1
-        if c.isdigit():
-            numdigit = numdigit + 1
+        numupper =0
+        numlower =0
+        numdigit=0
+        for c in passwd:
+            if c.isupper():
+                numupper = numupper + 1
+            if c.islower():
+                numlower = numlower + 1
+            if c.isdigit():
+                numdigit = numdigit + 1
 
-    if numupper <= 0:
-        passwd_error=('password must contain at least one uppercase character')
-        passwd=''
-
-    elif numlower <= 0:
-        passwd_error=('password must contain at least one lowercase character')
-        passwd=''
-
-    elif len(passwd)<8:
-        passwd_error = ('password must be greater than 8 characters')
-        passwd=''
-
-    else:
-        if numdigit <= 0:
-            passwd_error= ('password must contain at least one number')
+        if numupper <= 0:
+            passwd_error=('password must contain at least one uppercase character')
             passwd=''
+
+        elif numlower <= 0:
+            passwd_error=('password must contain at least one lowercase character')
+            passwd=''
+
+        elif len(passwd)<8:
+            passwd_error = ('password must be greater than 8 characters')
+            passwd=''
+
+        else:
+            if numdigit <= 0:
+                passwd_error= ('password must contain at least one number')
+                passwd=''
     
-    if confi_pass == passwd:
-        confi_pass=''
-    else:
-        confi_pass_error= ('Password does not Match')   
+        if confi_pass == passwd:
+            confi_pass=''
+        else:
+            confi_pass_error= ('Password does not Match')   
 
-    if '@' not in e_mail or '.com' not in e_mail:
-        e_mail_error=('Not a valid email')
+        if '@' not in e_mail or '.com' not in e_mail:
+            e_mail_error=('Not a valid email')
 
 
 
-    if not username_error and not passwd_error and not confi_pass_error and not e_mail_error:
-        return render_template('login.html', name= username)
-    else:
-        return redirect('/?username_error='+username_error+
+        if not username_error and not passwd_error and not confi_pass_error and not e_mail_error:
+            existing_user= User.query.filter_by(username=username).first()
+            if not existing_user:
+                new_user=User(username,passwd,e_mail)
+                db.session.add(new_user)
+                db.session.commit()
+                session['email']=e_mail
+                return redirect('/')
+            else:
+                flash("You already have an account. Please login")
+                return redirect('/login')  
+
+        else:
+            return redirect('/register?username_error='+username_error+
         '&passwd_error='+passwd_error+
         '&confi_pass_error='+confi_pass_error+
         '&e_mail_error='+e_mail_error+
@@ -149,18 +160,14 @@ def register():
         '&passwd='+passwd+
         '&confi_pass='+confi_pass+
         '&e_mail='+e_mail)   
+    username_error=request.args.get("username_error")
+    passwd_error=request.args.get("passwd_error")
+    confi_pass_error=request.args.get("confi_pass_error")
+    e_mail_error=request.args.get("e_mail_error")
 
-    existing_user= User.query.filter_by(email=email).first()
-    if not existing_user:
-        new_user=User(username,password,email)
-        db.session.add(new_user)
-        db.session.commit()
-        session['email']=email
-        return redirect('/')
-    else:
-        flash("You already have an account. Please login")
-        return redirect('/login')  
-    return render_template('signup.html',pgtitle="Signup")           
+    return render_template('signup.html',pgtitle="Signup",username_error=username_error,
+       e_mail_error=e_mail_error,passwd_error=passwd_error,confi_pass_error=confi_pass_error)
+          
     
     
 @app.route('/logout', methods=['GET'])
@@ -217,7 +224,7 @@ def index(id, username):
         update_blog = Blog.query.get(id)
         return render_template('display.html',title="Details of Blogs", 
          update_blog=update_blog )
-    if email:
+    if username:
         user_blog=User.query.filter_by(username=username).first()
         tasks=Blog.query.filter_by(owner=user_blog).all()
         return render_template('singleUser.html',title="Add a Blog", tasks=tasks)
